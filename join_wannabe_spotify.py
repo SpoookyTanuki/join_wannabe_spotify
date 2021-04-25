@@ -77,21 +77,21 @@ WHERE tc.collection_id IS NULL;
 short_track = con.execute("""
 SELECT a.name FROM artist a
 JOIN album ON a.id = album.artist_id
-JOIN track t ON album.id = t.album_id
-GROUP BY a.name, t.duration
-ORDER BY t.duration ASC;
-""").fetchone()
+JOIN track ON album.id = track.album_id
+    WHERE track.duration = (
+        SELECT MIN(track.duration) from track)
+""").fetchall()
 # print(short_track)
 
+
 # название альбомов, содержащих наименьшее количество треков
-# не поняла, как вывести все MIN
 min_tracks = con.execute("""
-SELECT album.name, COUNT(track.album_id) track_count FROM track
-JOIN album ON track.album_id = album.id
-GROUP BY track.album_id, album.name
-ORDER BY track_count ASC
-LIMIT 1;
+SELECT album.name FROM album
+JOIN track ON album.id = track.album_id
+GROUP BY album.name
+HAVING COUNT(track.album_id) = (
+SELECT track.album_id from track
+ORDER BY album_id ASC
+LIMIT 1);
 """).fetchall()
 print(min_tracks)
-
-
